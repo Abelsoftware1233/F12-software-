@@ -1,18 +1,16 @@
 #!/usr/bin/env bash
 #
 # deploy.sh — Automatiseert de installatie van de F12 Scanner op deze server.
-# Structuur: alle bestanden staan plat in de repo-root, naast dit script:
-#   main.py, requirements.txt, index.html, script.js,
-#   f12-backend.service, nginx-f12.conf
+# Structuur: alle bestanden staan plat in de repo-root, naast dit script.
 #
 # Draai met: sudo bash deploy.sh
-# Her-uitvoerbaar na git pull + code-update.
 
 set -euo pipefail
 
 DOMAIN="f12.abelsoftware123.com"
 APP_DIR="/var/www/f12"
 SERVICE_NAME="f12-backend"
+BACKEND_PORT=6677
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 log()  { echo -e "\033[1;34m[deploy]\033[0m $*"; }
@@ -45,7 +43,6 @@ fi
 log "Zet mappenstructuur op onder $APP_DIR..."
 mkdir -p "$APP_DIR"
 
-# Kopieer alle relevante bestanden plat naar de app-directory
 cp "$SCRIPT_DIR/main.py" "$APP_DIR/main.py"
 cp "$SCRIPT_DIR/requirements.txt" "$APP_DIR/requirements.txt"
 cp "$SCRIPT_DIR/index.html" "$APP_DIR/index.html"
@@ -69,7 +66,7 @@ systemctl restart "$SERVICE_NAME"
 
 sleep 1
 if systemctl is-active --quiet "$SERVICE_NAME"; then
-  log "Backend service draait."
+  log "Backend service draait op poort ${BACKEND_PORT}."
 else
   err "Backend service is niet gestart. Bekijk logs met: journalctl -u $SERVICE_NAME -n 50"
   exit 1
@@ -92,8 +89,8 @@ else
   warn "en daarna: nginx -t && systemctl reload nginx"
 fi
 
-log "Test backend health endpoint..."
-if curl -fsS http://127.0.0.1:8000/api/health >/dev/null; then
+log "Test backend health endpoint op poort ${BACKEND_PORT}..."
+if curl -fsS "http://127.0.0.1:${BACKEND_PORT}/api/health" >/dev/null; then
   log "Backend health check OK."
 else
   warn "Health check gaf geen OK terug — controleer de logs."
