@@ -1,8 +1,5 @@
 # /etc/systemd/system/f12-backend.service
 #
-# Let op: verwacht /var/www/f12/ platte structuur met main.py erin
-# (dus backend_main.py hernoemd naar main.py op de server).
-#
 # Installeer met:
 #   sudo cp f12-backend.service /etc/systemd/system/
 #   sudo systemctl daemon-reload
@@ -20,7 +17,7 @@ User=www-data
 Group=www-data
 WorkingDirectory=/var/www/f12
 Environment="PATH=/var/www/f12/venv/bin"
-ExecStart=/var/www/f12/venv/bin/uvicorn main:app --host 127.0.0.1 --port 8000 --workers 2
+ExecStart=/var/www/f12/venv/bin/uvicorn main:app --host 127.0.0.1 --port 6677 --workers 2
 Restart=on-failure
 RestartSec=5
 
